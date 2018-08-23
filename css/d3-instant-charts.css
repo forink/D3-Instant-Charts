@@ -12,7 +12,7 @@ svg.d3-instant-charts .axis-x line {
 
 /* X軸刻度文字 */
 svg.d3-instant-charts .axis-x > g > text {
-    font: 1.1rem "Noto Sans TC", "微軟正黑體", "Microsoft JhengHei", Arial;
+    font: 1rem "Noto Sans TC", "微軟正黑體", "Microsoft JhengHei", Arial;
     fill: #333333;
 }
 
@@ -45,6 +45,17 @@ svg.d3-instant-charts .grid-x path {
     stroke-width: 0;
 }
 
+svg.d3-instant-charts .grid-y line {
+    stroke: #CCCCCC;
+    stroke-opacity: 0.7;
+    stroke-dasharray: 5 2;
+    shape-rendering: crispEdges;
+}
+
+svg.d3-instant-charts .grid-y path {
+    stroke-width: 0;
+}
+
 svg.d3-instant-charts .bar {
     stroke: #3379c4;
     stroke-width: 0;
@@ -54,6 +65,22 @@ svg.d3-instant-charts .bar {
 svg.d3-instant-charts .bar-text {
     fill: #004187;
     font-size: 10px;
+}
+
+svg.d3-instant-charts .line {
+    fill: none;
+    stroke-width: 4;
+}
+
+svg.d3-instant-charts .axis path {
+    stroke: black;
+}
+
+
+svg.d3-instant-charts .legend rect {
+    fill: white;
+    stroke: black;
+    opacity: 0.8;
 }
 
 .d3-instant-charts-tooltip {

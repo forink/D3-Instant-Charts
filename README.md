@@ -3,4 +3,6 @@ The D3 Instant Charts relies on jquery 3.x and D3.js v5 libraries for rapid deve
 
 ##Changelog
 
+v 0.2.0 - Add the line chart supports.
+
 v 0.1.0 - Launched. Add the bar chart supports.
