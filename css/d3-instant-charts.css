@@ -12,8 +12,9 @@ svg.d3-instant-charts .axis-x line {
 
 /* X軸刻度文字 */
 svg.d3-instant-charts .axis-x > g > text {
-    font: 1rem "Noto Sans TC", "微軟正黑體", "Microsoft JhengHei", Arial;
+    font: 1rem "Courier New", "微軟正黑體", "Microsoft JhengHei", Arial;
     fill: #333333;
+    font-weight: 800;
 }
 
 /* Y主軸線 */
@@ -30,8 +31,9 @@ svg.d3-instant-charts .axis-y line {
 
 /* Y軸刻度文字 */
 svg.d3-instant-charts .axis-y > g > text {
-    font: 0.8rem "Noto Sans TC", "微軟正黑體", "Microsoft JhengHei", Arial;
+    font: 0.8rem "Courier New", "微軟正黑體", "Microsoft JhengHei", Arial;
     fill: #333333;
+    font-weight: 800;
 }
 
 svg.d3-instant-charts .grid-x line {
@@ -99,3 +101,24 @@ svg.d3-instant-charts .legend rect {
     z-index: 999;
     opacity: 0;
 }
+
+svg.d3-instant-charts .legend-layer {
+    stroke: #CCCCCC;
+    stroke-width: 1px;
+}
+
+    svg.d3-instant-charts .legend-layer rect {
+        stroke-width: 1px;
+        cursor: pointer;
+    }
+
+    svg.d3-instant-charts .legend-layer text {
+        stroke: #333333;
+        stroke-width: 1px;
+        font-size: 0.8rem;
+        font: 0.8rem "Courier New", "微軟正黑體", "Microsoft JhengHei", Arial;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        user-select: none;
+    }

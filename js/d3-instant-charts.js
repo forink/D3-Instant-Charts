@@ -218,14 +218,16 @@
         var settings = $.extend({
             jsonUrl: '',
             useClientSize: false,  //This plugin will detect the client size to autofit the svg size.
-            width: 400,  //svg width
-            height: 300,  //svg height
+            width: 500,  //svg width
+            height: 350,  //svg height
             marginTop: 50,  //svg margin top
             marginRight: 50,  //svg margin right
             marginButtom: 50,  //svg margin buttom
             marginLeft: 50,  //svg margin left
             axisYScaleCount: 10,  //Y軸刻度數量
-            toolTipFormat: '{%name%}: {%values.x%} - {%values.y%}'
+            toolTipFormat: '{%name%}: {%values.x%} - {%values.y%}',
+            xAxisTimeFormat: '%Y/%m',
+            legendWidthRate: 0.5
         }, options);
 
         var targetId = $(this).attr('id');
@@ -248,7 +250,8 @@
             svgWidth = document.querySelector('#' + targetId).clientWidth;
             svgHeight = document.querySelector('#' + targetId).clientHeight;
             if (svgWidth === 0 || svgHeight === 0) {
-
+                svgWidth = settings.width;
+                svgHeight = settings.height;
             }
         } else {
             svgWidth = settings.width;
@@ -258,6 +261,9 @@
         //設定圖表大小
         var chartWidth = svgWidth - (margin.left + margin.right);
         var chartHeight = svgHeight - (margin.top + margin.bottom);
+
+        //設定圖例圖層寬度
+        var legendWidth = svgWidth * settings.legendWidthRate;
 
         //建立圖框
         var svg = d3.select('#' + targetId)
@@ -279,12 +285,18 @@
             .attr('height', chartHeight)
             .attr('transform', 'translate(' + [margin.left, margin.top] + ')');
 
+        //建立圖例圖層
+        var legendLayer = svg.append('g')
+            .classed('legend-layer', true)
+            .attr('width', legendWidth)
+            .attr('height', margin.top);
+
         //設定資料Root
         var dataset = jsonObj.d3chart;
 
         //日期資料Parse格式
         var timeParseFormat = d3.timeParse('%Y-%m');
-        var outputTimeFormat = d3.timeFormat('%Y/%m');
+        var outputTimeFormat = d3.timeFormat(settings.xAxisTimeFormat);
 
         //處理時間序列資料
         dataset.forEach(function (d) {
@@ -299,11 +311,15 @@
             return d3.max(d.values, d=>d.y);
         });
 
-        //刻度值
-        var tickVal = d3.tickStep(0, maxDataVal, settings.axisYScaleCount);
+        //取得資料最小值
+        var minDataVal = d3.min(dataset, function (d) {
+            return d3.min(d.values, d=>d.y);
+        });
 
-        //計算出X軸最大值
-        var axisYMaxVal = (tickVal - (maxDataVal % tickVal)) + maxDataVal;
+        //取得Y軸可變級距的座標陣列
+        var yTicks = d3.range(settings.axisYScaleCount).map(function (i) {
+            return Math.round(d3.quantile([minDataVal, maxDataVal], i / (settings.axisYScaleCount - 1)));
+        });
 
         //設定X軸尺度
         var xScale = d3.scaleTime()
@@ -330,7 +346,7 @@
             .attr('class', 'grid-y')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
             .call(d3.axisLeft(yScale)
-                .ticks()
+                .tickValues(yTicks)
                 .tickSizeInner(-chartWidth)
                 .tickFormat('')
             );
@@ -348,7 +364,9 @@
         var axisY = axisLayer.append('g')
             .attr('class', 'axis-y')
             .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-            .call(d3.axisLeft(yScale));
+            .call(d3.axisLeft(yScale)
+                .tickValues(yTicks)
+            );
 
         //滑鼠移過時的Tooltip區塊
         var tooltip = d3.select('body').append('div')
@@ -377,7 +395,7 @@
             .append('path')
             .attr('class', 'line')
             .attr('d', d => line(d.values))
-            .style('stroke', (d, i) => lineColor(i))
+            .style('stroke', (d, i) => lineColor(d.name))
             .style('opacity', 0.3)
             .call(lineTransition)
             .on('mouseover', function (d) {
@@ -405,7 +423,7 @@
             .append('g')
             .attr('class', 'circle-group')
             .attr('data-id', d => d.name)
-            .style('fill', (d, i) => lineColor(i))
+            .style('fill', (d, i) => lineColor(d.name))
             .selectAll('circle')
             .data(d => d.values)
             .enter()
@@ -441,15 +459,65 @@
             .duration(2800)
             .attr('r', 6);
 
-        //繪製圖例
-        //繼續努力
+        //圖例的大小應該要計算項目與文字長度
+        var legendRectSize = 12;
+        var legendSpacing = 6;
+        var horz = 0, vert = 0;
 
-        //設定折線漸變效果
+        //繪製圖例
+        var legend = legendLayer.selectAll('.legend')
+            .data(lineColor.domain())
+            .enter()
+            .append('g')
+            .attr('class', 'legend');
+
+        //繪製圖例方塊
+        var blankColor = '#FFFFFF';
+        legend.append('rect')
+            .attr('width', legendRectSize)
+            .attr('height', legendRectSize)
+            .style('fill', lineColor)
+            .style('stroke', lineColor)
+            .on("click", function (d) {
+                clickLegendIcon(this, d);
+            });
+
+        //繪製圖例文字
+        legend.append('text')
+            .attr('x', legendRectSize + legendSpacing)
+            .attr('y', legendRectSize - legendSpacing/2)
+            .text(function (d) { return d; });
+
+        //喬位置
+        var textLoc = 0;
+        var lastWidth = 0;
+        legend.attr('transform', function (d, i) {
+            horz += textLoc;
+            var textWidth = d3.select(this).select('text').node().getComputedTextLength();
+            textLoc = legendRectSize + legendSpacing * 3 + textWidth * 1.2;
+            vert = -2 * legendRectSize;
+            legendLayer
+                .attr('transform', 'translate(' + [(svgWidth / 2) - (legendWidth / 2), margin.top - legendRectSize] + ')');
+            return 'translate(' + horz + ',' + vert + ')';
+        });
+
+        //Function-點擊圖例
+        function clickLegendIcon(target, data) {
+            if (d3.select(target).style('fill') === d3.color(blankColor).toString()) {
+                d3.selectAll('g[data-id="' + data + '"').transition().duration(500).attr('opacity', 1);
+                d3.select(target).transition().duration(500).style('fill', lineColor);
+            } else {
+                d3.selectAll('g[data-id="' + data + '"').attr('opacity', 0);
+                d3.select(target).style('fill', blankColor);
+            }
+        }
+
+        //Function-設定折線漸變效果
         function lineTransition(line) {
             line.transition().duration(2000).attrTween("stroke-dasharray", calcTween);
         }
 
-        //計算折線方位
+        //Function-計算折線方位
         function calcTween() {
             var len = this.getTotalLength();
             var ips = d3.interpolateString("0," + len, len + "," + len);
