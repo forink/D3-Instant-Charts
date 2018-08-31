@@ -566,7 +566,7 @@
                 jsonData = data;
             },
             error: function () {
-                jsonData = 'ERROR';
+                jsonData = 'IO ERROR';
             }
         });
         //console.log(jsonData);
@@ -577,7 +577,7 @@
 
         var isValid = false;
         try {
-            if (jsonObj === 'ERROR') {
+            if (jsonObj === 'IO ERROR') {
                 console.log('An error occurred while reading the JSON source.');
             } else if ($.isEmptyObject(jsonObj)) {
                 console.log('The JSON object is null or empty.');
@@ -611,9 +611,7 @@
             .attr('class', 'no-data-frame')
             .attr('width', svgWidth)
             .attr('height', svgHeight)
-            .style('fill', '#EEEEEE')
-            .style('stroke', '#CCCCCC')
-            .style('stroke-width', '2px');
+            .style('fill', '#EEEEEE');
 
         svg.append('rect')
             .attr('x', svgWidth / 8)
