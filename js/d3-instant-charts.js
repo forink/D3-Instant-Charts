@@ -28,14 +28,14 @@
                 barSpacing: 0.1,  //設定Bar間距
                 barWidthRate: 0.3,  //設定Bar寬比率 (0~1，數字越小越粗)
                 axisXScaleCount: 10,  //X軸刻度數量
-                toolTipFormat: '{%name%} - {%value%}'
+                toolTipFormat: '{%name%} - {%value%}',
+                ajaxType: 'GET',
+                blankDataMessage: 'No Data Available.'
             }, options);
 
             var targetId = $(this).attr('id');
-            var jsonObj = callJson(settings.jsonUrl);
+            var jsonObj = callJson(settings.jsonUrl, settings.ajaxType);
             //console.log(jsonObj.d3chart);
-
-            if (jsonObj === null || jsonObj === 'ERROR') { return; }
 
             //設定畫布邊界
             var margin = {
@@ -50,9 +50,19 @@
             if (settings.useClientSize) {
                 svgWidth = document.querySelector('#' + targetId).clientWidth;
                 svgHeight = document.querySelector('#' + targetId).clientHeight;
+                if (svgWidth === 0 || svgHeight === 0) {
+                    svgWidth = settings.width;
+                    svgHeight = settings.height;
+                }
             } else {
                 svgWidth = settings.width;
                 svgHeight = settings.height;
+            }
+
+            //檢查資料是否可輸出，否則繪出錯誤訊息
+            if (!checkJsonIsValid(jsonObj)) {
+                drawNoDataMsg(targetId, svgWidth, svgHeight, settings.blankDataMessage);
+                return;
             }
 
             //設定圖表大小
@@ -224,14 +234,14 @@
                 axisYScaleCount: 10,  //Y軸刻度數量
                 toolTipFormat: '{%name%}: {%values.x%} - {%values.y%}',
                 xAxisTimeFormat: '%Y/%m',
-                legendWidthRate: 0.5
+                legendWidthRate: 0.5,
+                ajaxType: 'GET',
+                blankDataMessage: 'No Data Available.'
             }, options);
-            
-            var targetId = $(this).attr('id');
-            var jsonObj = callJson(settings.jsonUrl);
-            //console.log(jsonObj.d3chart);
 
-            if (jsonObj === null || jsonObj === 'ERROR') { return; }
+            var targetId = $(this).attr('id');
+            var jsonObj = callJson(settings.jsonUrl, settings.ajaxType);
+            //console.log(jsonObj.d3chart);
 
             //設定畫布邊界
             var margin = {
@@ -253,6 +263,12 @@
             } else {
                 svgWidth = settings.width;
                 svgHeight = settings.height;
+            }
+
+            //檢查資料是否可輸出，否則繪出錯誤訊息
+            if (!checkJsonIsValid(jsonObj)) {
+                drawNoDataMsg(targetId, svgWidth, svgHeight, settings.blankDataMessage);
+                return;
             }
 
             //設定圖表大小
@@ -331,7 +347,7 @@
             var yScale = d3.scaleLinear()
                 .domain([0, maxDataVal])
                 .range([chartHeight, 0]);
-            
+
             //繪製 X Grid
             var gridX = axisLayer.append('g')
                 .attr('class', 'grid-x')
@@ -385,14 +401,14 @@
             //建立折線
             var lines = chartLayer.append('g')
                 .attr('class', 'lines');
-           
+
             //繪製折線
             lines.selectAll('.line-group')
                 .data(dataset)
                 .enter()
                 .append('g')
                 .attr('class', 'line-group')
-                .attr('data-id', function (d) { return d.name;})
+                .attr('data-id', function (d) { return d.name; })
                 .append('path')
                 .attr('class', 'line')
                 .attr('d', function (d) { return line(d.values); })
@@ -416,14 +432,14 @@
                     tooltip.transition().duration(500).style('opacity', 0);
                     d3.select(this).style('opacity', 0.3);
                 });
-                      
+
             //繪製折線點
             lines.selectAll('.circle-group')
                 .data(dataset)
                 .enter()
                 .append('g')
                 .attr('class', 'circle-group')
-                .attr('data-id', function(d) { return d.name; })
+                .attr('data-id', function (d) { return d.name; })
                 .style('fill', function (d, i) { return lineColor(d.name); })
                 .selectAll('circle')
                 .data(function (d) { return d.values; })
@@ -459,7 +475,7 @@
                 .transition()
                 .duration(2800)
                 .attr('r', 6);
-                     
+
             //圖例的大小應該要計算項目與文字長度
             var legendRectSize = 12;
             var legendSpacing = 6;
@@ -525,7 +541,7 @@
                 return function (t) { return ips(t); };
             }
         }
-        }
+    }
     );
 
     //$.fn.areaChart = function (options) { };
@@ -537,13 +553,13 @@
     //$.fn.gaugeChart = function (options) {};
 
     //Get json data from url
-    var callJson = function (url) {
+    var callJson = function (url, ajaxType) {
 
         var jsonData = '';
 
         $.ajax({
             url: url,
-            type: 'GET',
+            type: ajaxType,
             async: false,
             dataType: 'json',
             success: function (data) {
@@ -555,6 +571,75 @@
         });
         //console.log(jsonData);
         return jsonData;
+    };
+
+    var checkJsonIsValid = function (jsonObj) {
+
+        var isValid = false;
+        try {
+            if (jsonObj === 'ERROR') {
+                console.log('An error occurred while reading the JSON source.');
+            } else if ($.isEmptyObject(jsonObj)) {
+                console.log('The JSON object is null or empty.');
+            } else if (JSON.parse(JSON.stringify(jsonObj)) === 'ERROR') {
+                console.log('The JSON format is invalid.');
+            } else if (!jsonObj.hasOwnProperty('d3chart')) {
+                console.log('The root element of JSON is invalid.');
+            } else if (jsonObj['d3chart'].length === 0 || Object.keys(jsonObj['d3chart'][0]).length === 0) {
+                console.log('The root element of JSON is null or empty.');
+            } else {
+                isValid = true;
+            }
+        }
+        catch (e) {
+            console.log('An error occurred while validating the JSON format.');
+        }
+        return isValid;
+    };
+
+    var drawNoDataMsg = function (targetId, svgWidth, svgHeight, blankDataMessage) {
+
+        var svg = d3.select('#' + targetId)
+            .append('svg')
+            .attr('class', 'd3-instant-charts')
+            .attr('width', svgWidth)
+            .attr('height', svgHeight);
+
+        svg.append('rect')
+            .attr('x', 0)
+            .attr('y', 0)
+            .attr('class', 'no-data-frame')
+            .attr('width', svgWidth)
+            .attr('height', svgHeight)
+            .style('fill', '#EEEEEE')
+            .style('stroke', '#CCCCCC')
+            .style('stroke-width', '2px');
+
+        svg.append('rect')
+            .attr('x', svgWidth / 8)
+            .attr('y', (svgHeight * 3) / 8)
+            .attr('class', 'no-data-box')
+            .attr('width', (svgWidth * 3) / 4)
+            .attr('height', svgHeight / 4)
+            .style('fill', '#FFFFFF')
+            .style('stroke', '#999999')
+            .style('stroke-dasharray', '5 2')
+            .style('stroke-width', '1px')
+            .style('opacity', 0)
+            .transition()
+            .duration(2000)
+            .style('opacity', 0.6);
+
+        //繪製沒資料的錯誤訊息
+        svg.append('text')
+            .attr('x', svgWidth / 2)
+            .attr('y', (svgHeight / 2) + 5)
+            .text(blankDataMessage)
+            .style("text-anchor", "middle")
+            .style('opacity', 0)
+            .transition()
+            .duration(2000)
+            .style('opacity', 0.6);
     };
 
 }(jQuery));
