@@ -3,6 +3,8 @@ The D3 Instant Charts relies on jquery 3.x and D3.js v5 libraries for rapid deve
 
 ##Changelog
 
+v 0.2.4 - Add axis-Y padding ellipses symbols and auto fit left margin of charts by the width of axis-Y labels on the bar chart.
+
 v 0.2.3 - Add the methods to check the JSON format.
 
 v 0.2.2 - Fix the IE11 compatibility.

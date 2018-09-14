@@ -30,7 +30,7 @@ svg.d3-instant-charts .axis-y line {
 }
 
 /* Y軸刻度文字 */
-svg.d3-instant-charts .axis-y > g > text {
+svg.d3-instant-charts .axis-y > g > text, svg.d3-instant-charts .temp-text {
     font: 0.8rem "Courier New", "微軟正黑體", "Microsoft JhengHei", Arial;
     fill: #333333;
     font-weight: 800;

@@ -19,16 +19,19 @@
             var settings = $.extend({
                 jsonUrl: '',
                 useClientSize: false,  //This plugin will detect the client size to autofit the svg size.
-                width: 400,  //svg width
-                height: 300,  //svg height
-                marginTop: 50,  //svg margin top
-                marginRight: 50,  //svg margin right
-                marginButtom: 50,  //svg margin buttom
-                marginLeft: 50,  //svg margin left
+                width: 500,  //svg width
+                height: 350,  //svg height
+                marginTop: 30,  //svg margin top
+                marginRight: 30,  //svg margin right
+                marginButtom: 30,  //svg margin buttom
+                marginLeft: 20,  //svg margin left
                 barSpacing: 0.1,  //設定Bar間距
                 barWidthRate: 0.3,  //設定Bar寬比率 (0~1，數字越小越粗)
                 axisXScaleCount: 10,  //X軸刻度數量
-                toolTipFormat: '{%name%} - {%value%}',
+                axisYPadding: 0,  // Y軸標題略縮字數: =0 顯示完整標題; >0 省略點在右邊; <0 省略點在左邊
+                axisYPaddingEllipses: '…',  // Y軸省略標題時的代替字串
+                autoFitAxisY: true,  //自動判定Y軸字串長度以調整左邊寬度
+                toolTipFormat: '{%name%} - {%value%}', //{%name%} 名稱; {%value%} 數值
                 ajaxType: 'GET',
                 blankDataMessage: 'No Data Available.'
             }, options);
@@ -59,22 +62,44 @@
                 svgHeight = settings.height;
             }
 
-            //檢查資料是否可輸出，否則繪出錯誤訊息
-            if (!checkJsonIsValid(jsonObj)) {
-                drawNoDataMsg(targetId, svgWidth, svgHeight, settings.blankDataMessage);
-                return;
-            }
-
-            //設定圖表大小
-            var chartWidth = svgWidth - (margin.left + margin.right);
-            var chartHeight = svgHeight - (margin.top + margin.bottom);
-
             //建立圖框
             var svg = d3.select('#' + targetId)
                 .append('svg')
                 .attr('class', 'd3-instant-charts')
                 .attr('width', svgWidth)
                 .attr('height', svgHeight);
+
+            //檢查資料是否可輸出，否則繪出錯誤訊息
+            if (!checkJsonIsValid(jsonObj)) {
+                drawNoDataMsg(targetId, svgWidth, svgHeight, settings.blankDataMessage);
+                return;
+            }
+
+            //設定資料Root
+            var dataset = jsonObj.d3chart;
+
+            //取得資料最大值
+            var maxDataVal = d3.max(dataset, function (d) { return d.value; });
+
+            //取得Y軸標題文字長度的最大值
+            var maxLengthAxisYLabel = d3.max(dataset, function (d) { return d.name; });
+
+            //如果有省略字元，連最寬文字長度也要處理
+            maxLengthAxisYLabel = getPaddingText(maxLengthAxisYLabel, settings.axisYPadding, settings.axisYPaddingEllipses);
+
+            if (settings.autoFitAxisY) {
+                margin.left = calculateTextLength(maxLengthAxisYLabel) + settings.marginLeft;
+            }
+
+            //刻度值
+            var tickVal = d3.tickStep(0, maxDataVal, settings.axisXScaleCount);
+
+            //計算出X軸最大值
+            var axisXMaxVal = (tickVal - (maxDataVal % tickVal)) + maxDataVal;
+
+            //設定圖表大小
+            var chartWidth = svgWidth - (margin.left + margin.right);
+            var chartHeight = svgHeight - (margin.top + margin.bottom);
 
             //建立坐標軸圖層
             var axisLayer = svg.append('g')
@@ -88,18 +113,6 @@
                 .attr('width', chartWidth)
                 .attr('height', chartHeight)
                 .attr('transform', 'translate(' + [margin.left, margin.top] + ')');
-
-            //設定資料Root
-            var dataset = jsonObj.d3chart;
-
-            //取得資料最大值
-            var maxDataVal = d3.max(dataset, function (d) { return d.value; });
-
-            //刻度值
-            var tickVal = d3.tickStep(0, maxDataVal, settings.axisXScaleCount);
-
-            //計算出X軸最大值
-            var axisXMaxVal = (tickVal - (maxDataVal % tickVal)) + maxDataVal;
 
             //設定X軸尺度
             var xScale = d3.scaleLinear()
@@ -135,7 +148,12 @@
             var axisY = axisLayer.append('g')
                 .attr('class', 'axis-y')
                 .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')')
-                .call(d3.axisLeft(yScale));
+                .call(d3.axisLeft(yScale)
+                    .ticks()
+                    .tickFormat(function (d) {
+                        return getPaddingText(d, settings.axisYPadding, settings.axisYPaddingEllipses);
+                    })
+                );
 
             //滑鼠移過時的Tooltip區塊
             var tooltip = d3.select('body').append('div')
@@ -638,6 +656,33 @@
             .transition()
             .duration(2000)
             .style('opacity', 0.6);
+    };
+
+    var getPaddingText = function (text, padding, paddingStr) {
+        if (padding !== 0 && text.length > Math.abs(padding)) {
+            if (padding > 0) {
+                text = text.substring(0, padding) + paddingStr;
+            } else {
+                text = paddingStr + text.substring(text.length - padding, text.length - 1);
+            }
+        }
+        return text;
+    };
+
+    var calculateTextLength = function (text) {
+
+        var tempText = d3.select('svg')
+            .append('text')
+            .attr('class', 'temp-text')
+            .attr('x', 0)
+            .attr('y', 0)
+            .text(text)
+            .style('visibility', 'hidden');
+
+        var textLength = tempText.node().getComputedTextLength();
+        tempText.remove();
+
+        return textLength;
     };
 
 }(jQuery));
