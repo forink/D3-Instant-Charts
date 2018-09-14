@@ -23,7 +23,7 @@
                 height: 350,  //svg height
                 marginTop: 30,  //svg margin top
                 marginRight: 30,  //svg margin right
-                marginButtom: 30,  //svg margin buttom
+                marginButtom: 50,  //svg margin buttom
                 marginLeft: 20,  //svg margin left
                 barSpacing: 0.1,  //設定Bar間距
                 barWidthRate: 0.3,  //設定Bar寬比率 (0~1，數字越小越粗)
