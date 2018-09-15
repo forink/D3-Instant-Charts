@@ -663,7 +663,7 @@
             if (padding > 0) {
                 text = text.substring(0, padding) + paddingStr;
             } else {
-                text = paddingStr + text.substring(text.length - padding, text.length - 1);
+                text = paddingStr + text.substring(text.length + padding, text.length);
             }
         }
         return text;
