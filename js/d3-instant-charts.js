@@ -351,6 +351,9 @@
                 });
             });
 
+            //取得X軸組數
+            var axisXPointsCount = dataset[0].values.length;
+
             //取得Y軸可變級距的座標陣列
             var yTicks = d3.range(settings.axisYScaleCount).map(function (i) {
                 return Math.round(d3.quantile([minDataVal, maxDataVal], i / (settings.axisYScaleCount - 1)));
@@ -371,7 +374,7 @@
                 .attr('class', 'grid-x')
                 .attr('transform', 'translate(' + margin.left + ',' + (chartHeight + margin.top) + ')')
                 .call(d3.axisBottom(xScale)
-                    .ticks()
+                    .ticks(axisXPointsCount)
                     .tickSizeInner(-chartHeight)
                     .tickFormat('')
                 );
@@ -391,7 +394,7 @@
                 .attr('class', 'axis-x')
                 .attr('transform', 'translate(' + margin.left + ',' + (chartHeight + margin.top) + ')')
                 .call(d3.axisBottom(xScale)
-                    .ticks()
+                    .ticks(axisXPointsCount)
                     .tickFormat(outputTimeFormat)
                 );
 
@@ -539,10 +542,12 @@
             //Function-點擊圖例
             function clickLegendIcon(target, data) {
                 if (d3.color(d3.select(target).style('fill')).hex() === d3.color(blankColor).hex()) {
-                    d3.selectAll('g[data-id="' + data + '"').transition().duration(500).attr('opacity', 1);
+                    d3.selectAll('g[data-id="' + data + '"]').style('display', 'unset');
+                    d3.selectAll('g[data-id="' + data + '"]').transition().duration(500).attr('opacity', 1);
                     d3.select(target).transition().duration(500).style('fill', lineColor);
                 } else {
-                    d3.selectAll('g[data-id="' + data + '"').attr('opacity', 0);
+                    d3.selectAll('g[data-id="' + data + '"]').attr('opacity', 0);
+                    d3.selectAll('g[data-id="' + data + '"]').style('display', 'none');
                     d3.select(target).style('fill', blankColor);
                 }
             }

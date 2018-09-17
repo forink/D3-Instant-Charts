@@ -3,6 +3,8 @@ The D3 Instant Charts relies on jquery 3.x and D3.js v5 libraries for rapid deve
 
 ##Changelog
 
+v 0.2.5 - Fixed the tooltip still appears after closing the legend when the line data points overlap. And fixed the x-axis labels errors when the data point was less or equal to 5.
+
 v 0.2.4 - Add axis-Y padding ellipses symbols and auto fit left margin of charts by the width of axis-Y labels on the bar chart.
 
 v 0.2.3 - Add the methods to check the JSON format.
