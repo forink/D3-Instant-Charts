@@ -13,14 +13,15 @@
 
 (function ($) {
     'use strict';
+    var svgDefaultWidth = 500, svgDefaultHeight = 350, svgMinWidth = 300, svgMinHeight = 200;
+
     $.fn.extend({
         barChart: function (options) {
             // Default options
             var settings = $.extend({
                 jsonUrl: '',
-                useClientSize: false,  //This plugin will detect the client size to autofit the svg size.
-                width: 500,  //svg width
-                height: 350,  //svg height
+                width: svgDefaultWidth,  //svg width
+                height: svgDefaultHeight,  //svg height
                 marginTop: 30,  //svg margin top
                 marginRight: 30,  //svg margin right
                 marginButtom: 50,  //svg margin buttom
@@ -48,19 +49,11 @@
                 left: settings.marginLeft
             };
 
-            //設定畫布大小
-            var svgWidth, svgHeight;
-            if (settings.useClientSize) {
-                svgWidth = document.querySelector('#' + targetId).clientWidth;
-                svgHeight = document.querySelector('#' + targetId).clientHeight;
-                if (svgWidth === 0 || svgHeight === 0) {
-                    svgWidth = settings.width;
-                    svgHeight = settings.height;
-                }
-            } else {
-                svgWidth = settings.width;
-                svgHeight = settings.height;
-            }
+            //設定畫布大小(若未設定，則檢查客戶端的尺寸，若客戶端的尺寸小於最小可容許尺寸，則使用預設尺寸)
+            var suitableSize = getSuitableSize(targetId, settings.width, settings.height);
+            var svgWidth = suitableSize.width;
+            var svgHeight = suitableSize.height;
+            console.log(suitableSize);
 
             //建立圖框
             var svg = d3.select('#' + targetId)
@@ -242,9 +235,8 @@
             // Default options
             var settings = $.extend({
                 jsonUrl: '',
-                useClientSize: false,  //This plugin will detect the client size to autofit the svg size.
-                width: 500,  //svg width
-                height: 350,  //svg height
+                width: svgDefaultWidth,  //svg width
+                height: svgDefaultHeight,  //svg height
                 marginTop: 50,  //svg margin top
                 marginRight: 50,  //svg margin right
                 marginButtom: 50,  //svg margin buttom
@@ -269,19 +261,11 @@
                 left: settings.marginLeft
             };
 
-            //設定畫布大小
-            var svgWidth, svgHeight;
-            if (settings.useClientSize) {
-                svgWidth = document.querySelector('#' + targetId).clientWidth;
-                svgHeight = document.querySelector('#' + targetId).clientHeight;
-                if (svgWidth === 0 || svgHeight === 0) {
-                    svgWidth = settings.width;
-                    svgHeight = settings.height;
-                }
-            } else {
-                svgWidth = settings.width;
-                svgHeight = settings.height;
-            }
+            //設定畫布大小(若未設定，則檢查客戶端的尺寸，若客戶端的尺寸小於最小可容許尺寸，則使用預設尺寸)
+            var suitableSize = getSuitableSize(targetId, settings.width, settings.height);
+            var svgWidth = suitableSize.width;
+            var svgHeight = suitableSize.height;
+            //console.log(suitableSize);
 
             //檢查資料是否可輸出，否則繪出錯誤訊息
             if (!checkJsonIsValid(jsonObj)) {
@@ -355,7 +339,7 @@
                 });
             });
 
-            
+
             if (maxDataVal === 0 && minDataVal === 0) {
                 maxDataVal = 1;
             }
@@ -698,6 +682,28 @@
         tempText.remove();
 
         return textLength;
+    };
+
+    var getSuitableSize = function (targetId, alterWidth, alterHeight) {
+        var svgWidth, svgHeight;
+
+        if (alterWidth !== svgDefaultWidth) { //有設定
+            svgWidth = (alterWidth > svgMinWidth) ? alterWidth : svgDefaultWidth;
+        } else { //沒設定
+            //取得客戶端寬度，若太小則設定為預設寬度
+            svgWidth = document.querySelector('#' + targetId).clientWidth;
+            if (svgWidth <= svgMinWidth) {
+                svgWidth = svgDefaultWidth;
+            }
+        }
+
+        if (alterHeight !== svgDefaultHeight) { //有設定
+            svgHeight = (alterHeight > svgMinHeight) ? alterHeight : svgDefaultHeight;
+        } else { //沒設定
+            svgHeight = svgDefaultHeight;
+        }
+
+        return { width: svgWidth, height: svgHeight };
     };
 
 }(jQuery));

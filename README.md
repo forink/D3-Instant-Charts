@@ -3,6 +3,8 @@ The D3 Instant Charts relies on jquery 3.x and D3.js v5 libraries for rapid deve
 
 ##Changelog
 
+v 0.2.7 - Remove the "useClientSize" property. Now the charts can auto judge the settings of width and height.
+
 v 0.2.6 - Fixed the error which when all the data of the axis-Y is 0, the axis-Y would be displayed incorrectly. And fixed the error which when the number of months is less than or equal to 2, the axis-X would be displayed incorrectly.
 
 v 0.2.5 - Fixed the tool-tip still appears after closing the legend when the data-points overlap on the line chart. And fixed the x-axis labels errors when the data-points was less or equal to 5.
