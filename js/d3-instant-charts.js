@@ -325,9 +325,13 @@
             //設定資料Root
             var dataset = jsonObj.d3chart;
 
+            //取得X軸組數
+            var axisXPointsCount = dataset[0].values.length;
+
             //日期資料Parse格式
             var timeParseFormat = d3.timeParse('%Y-%m');
-            var outputTimeFormat = d3.timeFormat(settings.xAxisTimeFormat);
+            var outputTimeFormat = (axisXPointsCount > 2) ?
+                d3.timeFormat(settings.xAxisTimeFormat) : d3.timeFormat('%Y-%m-%d');
 
             //處理時間序列資料
             dataset.forEach(function (d) {
@@ -351,13 +355,19 @@
                 });
             });
 
-            //取得X軸組數
-            var axisXPointsCount = dataset[0].values.length;
+            
+            if (maxDataVal === 0 && minDataVal === 0) {
+                maxDataVal = 1;
+            }
 
             //取得Y軸可變級距的座標陣列
-            var yTicks = d3.range(settings.axisYScaleCount).map(function (i) {
-                return Math.round(d3.quantile([minDataVal, maxDataVal], i / (settings.axisYScaleCount - 1)));
-            });
+            var yTicks = (maxDataVal / settings.axisYScaleCount >= 1) ?
+                d3.range(settings.axisYScaleCount).map(function (i) {
+                    //檢查Y軸資料最大值是否大於指定刻度數量，符合條件轉整數，否則使用自動刻度
+                    return Math.round(d3.quantile([minDataVal, maxDataVal], i / (settings.axisYScaleCount - 1)));
+                }) : null;
+
+            //console.log(yTicks);
 
             //設定X軸尺度
             var xScale = d3.scaleTime()
