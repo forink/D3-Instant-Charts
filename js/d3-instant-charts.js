@@ -53,7 +53,7 @@
             var suitableSize = getSuitableSize(targetId, settings.width, settings.height);
             var svgWidth = suitableSize.width;
             var svgHeight = suitableSize.height;
-            console.log(suitableSize);
+            //console.log(suitableSize);
 
             //建立圖框
             var svg = d3.select('#' + targetId)
@@ -267,45 +267,6 @@
             var svgHeight = suitableSize.height;
             //console.log(suitableSize);
 
-            //檢查資料是否可輸出，否則繪出錯誤訊息
-            if (!checkJsonIsValid(jsonObj)) {
-                drawNoDataMsg(targetId, svgWidth, svgHeight, settings.blankDataMessage);
-                return;
-            }
-
-            //設定圖表大小
-            var chartWidth = svgWidth - (margin.left + margin.right);
-            var chartHeight = svgHeight - (margin.top + margin.bottom);
-
-            //設定圖例圖層寬度
-            var legendWidth = svgWidth * settings.legendWidthRate;
-
-            //建立圖框
-            var svg = d3.select('#' + targetId)
-                .append('svg')
-                .attr('class', 'd3-instant-charts')
-                .attr('width', svgWidth)
-                .attr('height', svgHeight);
-
-            //建立坐標軸圖層
-            var axisLayer = svg.append('g')
-                .classed('axis-layer', true)
-                .attr('width', svgWidth)
-                .attr('height', svgHeight);
-
-            //建立主圖表圖層
-            var chartLayer = svg.append('g')
-                .classed('chart-layer', true)
-                .attr('width', chartWidth)
-                .attr('height', chartHeight)
-                .attr('transform', 'translate(' + [margin.left, margin.top] + ')');
-
-            //建立圖例圖層
-            var legendLayer = svg.append('g')
-                .classed('legend-layer', true)
-                .attr('width', legendWidth)
-                .attr('height', margin.top);
-
             //設定資料Root
             var dataset = jsonObj.d3chart;
 
@@ -339,10 +300,44 @@
                 });
             });
 
+            //設定圖表大小
+            var chartWidth = svgWidth - (margin.left + margin.right);
+            var chartHeight = svgHeight - (margin.top + margin.bottom);
 
-            if (maxDataVal === 0 && minDataVal === 0) {
-                maxDataVal = 1;
+            //設定圖例圖層寬度
+            var legendWidth = svgWidth * settings.legendWidthRate;
+
+            //建立圖框
+            var svg = d3.select('#' + targetId)
+                .append('svg')
+                .attr('class', 'd3-instant-charts')
+                .attr('width', svgWidth)
+                .attr('height', svgHeight);
+
+            //檢查資料是否可輸出，否則繪出錯誤訊息
+            if (!checkJsonIsValid(jsonObj) || (maxDataVal === 0 && minDataVal === 0)) {
+                drawNoDataMsg(targetId, svgWidth, svgHeight, settings.blankDataMessage);
+                return;
             }
+
+            //建立坐標軸圖層
+            var axisLayer = svg.append('g')
+                .classed('axis-layer', true)
+                .attr('width', svgWidth)
+                .attr('height', svgHeight);
+
+            //建立主圖表圖層
+            var chartLayer = svg.append('g')
+                .classed('chart-layer', true)
+                .attr('width', chartWidth)
+                .attr('height', chartHeight)
+                .attr('transform', 'translate(' + [margin.left, margin.top] + ')');
+
+            //建立圖例圖層
+            var legendLayer = svg.append('g')
+                .classed('legend-layer', true)
+                .attr('width', legendWidth)
+                .attr('height', margin.top);
 
             //取得Y軸可變級距的座標陣列
             var yTicks = (maxDataVal / settings.axisYScaleCount >= 1) ?
@@ -617,10 +612,7 @@
     var drawNoDataMsg = function (targetId, svgWidth, svgHeight, blankDataMessage) {
 
         var svg = d3.select('#' + targetId)
-            .append('svg')
-            .attr('class', 'd3-instant-charts')
-            .attr('width', svgWidth)
-            .attr('height', svgHeight);
+            .select('svg.d3-instant-charts');
 
         svg.append('rect')
             .attr('x', 0)
@@ -642,7 +634,7 @@
             .style('stroke-width', '1px')
             .style('opacity', 0)
             .transition()
-            .duration(2000)
+            .duration(1000)
             .style('opacity', 0.6);
 
         //繪製沒資料的錯誤訊息
@@ -653,7 +645,7 @@
             .style("text-anchor", "middle")
             .style('opacity', 0)
             .transition()
-            .duration(2000)
+            .duration(1000)
             .style('opacity', 0.6);
     };
 
