@@ -3,6 +3,8 @@ The D3 Instant Charts relies on jquery 3.x and D3.js v5 libraries for rapid deve
 
 ##Changelog
 
+v 0.2.9 - Add the scaling ratio to customize the axis-Y margin.
+
 v 0.2.8 - Fix the style error when the JSON file without data.
 
 v 0.2.7 - Remove the "useClientSize" property. Now the charts can auto judge the settings of width and height.

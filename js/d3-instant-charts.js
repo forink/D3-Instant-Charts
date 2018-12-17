@@ -32,6 +32,7 @@
                 axisYPadding: 0,  // Y軸標題略縮字數: =0 顯示完整標題; >0 省略點在右邊; <0 省略點在左邊
                 axisYPaddingEllipses: '…',  // Y軸省略標題時的代替字串
                 autoFitAxisY: true,  //自動判定Y軸字串長度以調整左邊寬度
+                autoFitScaling: 1,  //縮放比率
                 toolTipFormat: '{%name%} - {%value%}', //{%name%} 名稱; {%value%} 數值
                 ajaxType: 'GET',
                 blankDataMessage: 'No Data Available.'
@@ -81,7 +82,7 @@
             maxLengthAxisYLabel = getPaddingText(maxLengthAxisYLabel, settings.axisYPadding, settings.axisYPaddingEllipses);
 
             if (settings.autoFitAxisY) {
-                margin.left = calculateTextLength(maxLengthAxisYLabel) + settings.marginLeft;
+                margin.left = calculateTextLength(maxLengthAxisYLabel) * settings.autoFitScaling + settings.marginLeft;
             }
 
             //刻度值
@@ -573,6 +574,7 @@
             url: url,
             type: ajaxType,
             async: false,
+            cache:false,
             dataType: 'json',
             success: function (data) {
                 jsonData = data;
